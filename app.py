@@ -19,27 +19,28 @@ if uploaded_files:
 
     progress = st.progress(0)
 
-for i, file in enumerate(uploaded_files):
+    for i, file in enumerate(uploaded_files):
 
-    try:
-        data = extract_invoice_data(file)
-        data["File Name"] = file.name
-        data["Status"] = "Success"
+        try:
+            data = extract_invoice_data(file)
+            data["File Name"] = file.name
+            data["Status"] = "Success"
 
-    except Exception as e:
-        data = {
-            "File Name": file.name,
-            "Invoice Number": "",
-            "Invoice Date": "",
-            "BL Number": "",
-            "Amount": "",
-            "Currency": "",
-            "Status": f"Error: {str(e)}"
-        }
+        except Exception as e:
+            data = {
+                "File Name": file.name,
+                "Invoice Number": "",
+                "Invoice Date": "",
+                "BL Number": "",
+                "Amount": "",
+                "Currency": "",
+                "Status": f"Error: {str(e)}"
+            }
 
-    results.append(data)
+        results.append(data)
+        progress.progress((i + 1) / len(uploaded_files))
 
-    progress.progress((i + 1) / len(uploaded_files))
+    # Everything below runs ONLY ONCE after all PDFs are processed
 
     df = pd.DataFrame(results)
 
@@ -47,7 +48,6 @@ for i, file in enumerate(uploaded_files):
 
     st.dataframe(df, use_container_width=True)
 
-    # Create Excel in memory
     output = BytesIO()
 
     with pd.ExcelWriter(output, engine="openpyxl") as writer:
@@ -59,5 +59,6 @@ for i, file in enumerate(uploaded_files):
         label="📥 Download Excel",
         data=output,
         file_name="Invoice_Extraction.xlsx",
-        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        key="download_excel"
     )
